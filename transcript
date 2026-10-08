@@ -1,0 +1,73 @@
+# //  Questa Sim-64
+# //  Version 2026.2 linux_x86_64 May 18 2026
+# //
+# // Unpublished work. Copyright 2026 Siemens
+# //
+# // This material contains trade secrets or otherwise confidential information
+# // owned by Siemens Industry Software Inc. or its affiliates (collectively,
+# // "SISW"), or its licensors. Access to and use of this information is strictly
+# // limited as set forth in the Customer's applicable agreements with SISW.
+# //
+# // This material may not be copied, distributed, or otherwise disclosed outside
+# // of the Customer's facilities without the express written permission of SISW,
+# // and may not be used in any way not expressly authorized by SISW.
+# //
+vlib work
+vcom -reportprogress 300 -work work /home/gmh2005/cpre3810/ProjPart1/Control_Unit.vhd
+# QuestaSim-64 vcom 2026.2 Compiler 2026.05 May 18 2026
+# Start time: 19:38:55 on Oct 07,2026
+# vcom -reportprogress 300 -work work /home/gmh2005/cpre3810/ProjPart1/Control_Unit.vhd 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Compiling entity control_unit
+# -- Compiling architecture dataflow of control_unit
+# vcom: End time: 19:38:55 on Oct 07,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+vcom -reportprogress 300 -work work /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd
+# QuestaSim-64 vcom 2026.2 Compiler 2026.05 May 18 2026
+# Start time: 19:38:55 on Oct 07,2026
+# vcom -reportprogress 300 -work work /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd 
+# -- Loading package STANDARD
+# -- Compiling entity fetch_logic
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(3): (vcom-1136) Unknown identifier "std_logic".
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(4): (vcom-1136) Unknown identifier "std_logic_vector".
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(5): (vcom-1136) Unknown identifier "std_logic_vector".
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(6): (vcom-1136) Unknown identifier "std_logic".
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(7): (vcom-1136) Unknown identifier "std_logic_vector".
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(8): (vcom-1136) Unknown identifier "std_logic".
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(9): (vcom-1136) Unknown identifier "std_logic_vector".
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(10): (vcom-1136) Unknown identifier "std_logic_vector".
+# ** Note: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(12): VHDL Compiler exiting
+# vcom: End time: 19:38:55 on Oct 07,2026, Elapsed time: 0:00:00
+# Errors: 8, Warnings: 0
+vcom -reportprogress 300 -work work /home/gmh2005/cpre3810/ProjPart1/Control_Unit.vhd
+# QuestaSim-64 vcom 2026.2 Compiler 2026.05 May 18 2026
+# Start time: 19:40:09 on Oct 07,2026
+# vcom -reportprogress 300 -work work /home/gmh2005/cpre3810/ProjPart1/Control_Unit.vhd 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Compiling entity control_unit
+# -- Compiling architecture dataflow of control_unit
+# vcom: End time: 19:40:09 on Oct 07,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+vcom -reportprogress 300 -work work /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd
+# QuestaSim-64 vcom 2026.2 Compiler 2026.05 May 18 2026
+# Start time: 19:40:09 on Oct 07,2026
+# vcom -reportprogress 300 -work work /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Compiling entity fetch_logic
+# -- Compiling architecture rtl of fetch_logic
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(22): (vcom-1136) Unknown identifier "unsigned".
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(22): Cannot resolve expression type of infix expression.
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(22): (vcom-1583) Illegal type conversion from 'unknown' to 'ieee.std_logic_1164.STD_LOGIC_VECTOR' (operand type is not known).
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(23): (vcom-1136) Unknown identifier "unsigned".
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(23): (vcom-1136) Unknown identifier "unsigned".
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(23): Cannot resolve expression type of infix expression.
+# ** Error: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(23): (vcom-1583) Illegal type conversion from 'unknown' to 'ieee.std_logic_1164.STD_LOGIC_VECTOR' (operand type is not known).
+# ** Note: /home/gmh2005/cpre3810/ProjPart1/fetch_logic.vhd(45): VHDL Compiler exiting
+# vcom: End time: 19:40:09 on Oct 07,2026, Elapsed time: 0:00:00
+# Errors: 7, Warnings: 0

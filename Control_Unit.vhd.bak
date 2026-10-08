@@ -1,0 +1,56 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+entity control_unit is
+    port (
+        instruction : in  std_logic_vector(31 downto 0);
+
+        RegWrite    : out std_logic;
+        MemWrite    : out std_logic;
+        MemRead     : out std_logic;
+        ALUSrc      : out std_logic;
+        MemToReg    : out std_logic;
+
+        Branch      : out std_logic;
+        Jump        : out std_logic;
+        JumpReg     : out std_logic;
+        LUI         : out std_logic;
+
+        ImmSrc      : out std_logic_vector(2 downto 0);
+        ALUControl  : out std_logic_vector(3 downto 0)
+    );
+end entity;
+
+architecture dataflow of control_unit is
+
+    signal instruction_code : std_logic_vector(16 downto 0);
+
+begin
+
+    instruction_code <=
+        instruction(31 downto 25) &
+        instruction(14 downto 12) &
+        instruction(6 downto 0);
+
+    with instruction_code select
+
+        RegWrite <=
+            '1' when "0000000000110011", -- ADD
+            '1' when "0100000000110011", -- SUB
+            '1' when "0000001000110011", -- SLL
+            '1' when "0000010000110011", -- XOR
+            '1' when "0000011000110011", -- OR
+            '1' when "0000011100110011", -- AND
+            '1' when "0000010100110011", -- SRL
+            '1' when "0100010100110011", -- SRA
+            '1' when "0000010000010011", -- XORI
+            '1' when "0000011000010011", -- ORI
+            '1' when "0000011100010011", -- ANDI
+            '1' when "0000000000010011", -- ADDI
+            '1' when "0000000000100011", -- LW
+            '1' when "0000000001101111", -- JAL
+            '1' when "0000000001100111", -- JALR
+            '1' when "0000000000110111", -- LUI
+            '0' when others;
+
+end architecture;
