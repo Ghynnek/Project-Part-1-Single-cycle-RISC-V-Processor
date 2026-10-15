@@ -1,0 +1,61 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
+
+entity fetch_logic is
+  port (
+    clk, reset   : in  std_logic;
+    imm          : in  std_logic_vector(31 downto 0);
+    alu_result   : in  std_logic_vector(31 downto 0);
+    zero         : in  std_logic;
+    funct3       : in  std_logic_vector(2 downto 0);
+    Branch, Jump, JumpReg : in std_logic;
+    pc           : out std_logic_vector(31 downto 0);
+    pc_plus4     : out std_logic_vector(31 downto 0)
+  );
+end entity;
+
+architecture dataflow of fetch_logic is
+  -- pc_reg is the current PC. pc4 is the fall-through address.
+  signal pc_reg, pc4, target, jalr_t, next_pc : std_logic_vector(31 downto 0);
+
+  signal branch_cond, taken : std_logic;
+  signal pcsrc : std_logic_vector(1 downto 0);
+begin
+
+  -- Compute candidate next-PC values.
+  pc4    <= std_logic_vector(unsigned(pc_reg) + 4);
+  target <= std_logic_vector(unsigned(pc_reg) + unsigned(imm));
+  jalr_t <= alu_result(31 downto 1) & '0';
+
+  -- 000 beq, 001 bne, 100 blt, 101 bge, 110 bltu, 111 bgeu.
+  branch_cond <= zero when funct3 = "000" else
+                 not zero when funct3 = "001" else
+                  alu_result(0) when funct3 = "100" or funct3 = "110" else
+                 not alu_result(0) when funct3 = "101" or funct3 = "111" else
+                 '0';
+
+  taken <= Branch and branch_cond;
+  -- Select which PC source to use:
+  -- 00 = PC + 4, 01 = PC-relative target, 10 = JALR target.
+  pcsrc <= "10" when JumpReg = '1' else
+           "01" when Jump = '1' or taken = '1' else
+           "00";
+  
+  with pcsrc select
+    next_pc <= pc4    when "00",
+               target when "01",
+               jalr_t when others;
+
+  -- PC storage. This is written as a concurrent assignment to avoid an
+  -- explicit process in this file.
+  pc_reg <= x"00400000" when reset = '1' else
+          next_pc when rising_edge(clk) else
+          pc_reg;
+
+  -- Outputs to instruction memory and the writeback path for jumps.
+  pc <= pc_reg;
+  pc_plus4 <= pc4;
+
+end architecture;
+

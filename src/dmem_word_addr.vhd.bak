@@ -1,0 +1,20 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+-- Example: byte addresses 0, 4, 8 become word addresses 0, 1, 2.
+entity dmem_word_addr is
+  generic (
+    ADDR_WIDTH : integer := 10
+  );
+  port (
+    byte_addr : in  std_logic_vector(31 downto 0);
+    word_addr : out std_logic_vector(ADDR_WIDTH - 1 downto 0)
+  );
+end entity;
+
+architecture dataflow of dmem_word_addr is
+begin
+
+  word_addr <= byte_addr(ADDR_WIDTH + 1 downto 2);
+
+end architecture;
