@@ -1,0 +1,10 @@
+.data
+.text
+.global main
+.main
+
+--load dec 512 in x8 med addr hex 10010404
+ lui x8, 0x200
+ lw  x8, 0404(x8)
+ 
+ wfi
