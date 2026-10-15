@@ -4,7 +4,9 @@
 .main
 
 --load dec 512 in x8 med addr hex 10010404
- lui x8, 0x200
- lw  x8, 0404(x8)
+ lui x5, 0x10010
+ addi x6, x0, 512
+ sw x6, 0x404(x5)
+ lw  x8, 0404(x5)
  
  wfi
