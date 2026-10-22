@@ -1,0 +1,60 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+-- Immediate generator.
+-- Builds sign-extended RISC-V immediates from the instruction bits.
+-- ImmSrc selects which immediate format to output.
+entity imm_gen is
+  port (
+    instruction : in  std_logic_vector(31 downto 0);
+    ImmSrc      : in  std_logic_vector(2 downto 0);
+    imm         : out std_logic_vector(31 downto 0)
+  );
+end entity;
+
+architecture dataflow of imm_gen is
+  -- Immediate formats:
+  signal imm_i : std_logic_vector(31 downto 0);
+  signal imm_s : std_logic_vector(31 downto 0);
+  signal imm_b : std_logic_vector(31 downto 0);
+  signal imm_u : std_logic_vector(31 downto 0);
+  signal imm_j : std_logic_vector(31 downto 0);
+begin
+
+  -- I-type: imm[11:0] = instruction[31:20].
+  imm_i <= (31 downto 12 => instruction(31)) & instruction(31 downto 20);
+
+  -- S-type: imm[11:5] = instruction[31:25],
+  -- imm[4:0] = instruction[11:7].
+  imm_s <= (31 downto 12 => instruction(31)) &
+           instruction(31 downto 25) &
+           instruction(11 downto 7);
+
+  -- B-type branch immediate. Bit 0 is always 0 because branches are aligned.
+  imm_b <= (31 downto 13 => instruction(31)) &
+           instruction(31) &
+           instruction(7) &
+           instruction(30 downto 25) &
+           instruction(11 downto 8) &
+           '0';
+
+  imm_u <= instruction(31 downto 12) & x"000";
+
+  -- J-type jump immediate. Bit 0 is always 0 because jumps are aligned.
+  imm_j <= (31 downto 21 => instruction(31)) &
+           instruction(31) &
+           instruction(19 downto 12) &
+           instruction(20) &
+           instruction(30 downto 21) &
+           '0';
+
+  -- Immediate mux.
+  -- 000 = I, 001 = S, 010 = B, 011 = U, 100 = J.
+  with ImmSrc select
+    imm <= imm_s when "001",
+           imm_b when "010",
+           imm_u when "011",
+           imm_j when "100",
+           imm_i when others;
+
+end architecture;

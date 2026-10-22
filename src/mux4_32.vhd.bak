@@ -1,0 +1,24 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+-- 4-input, 32-bit mux.
+-- s selects d0/d1/d2/d3 using 00/01/10/11.
+entity mux4_32 is
+  port (
+    d0 : in  std_logic_vector(31 downto 0);
+    d1 : in  std_logic_vector(31 downto 0);
+    d2 : in  std_logic_vector(31 downto 0);
+    d3 : in  std_logic_vector(31 downto 0);
+    s  : in  std_logic_vector(1 downto 0);
+    y  : out std_logic_vector(31 downto 0)
+  );
+end entity;
+
+architecture dataflow of mux4_32 is
+begin
+  with s select
+    y <= d0 when "00",
+         d1 when "01",
+         d2 when "10",
+         d3 when others;
+end architecture;
