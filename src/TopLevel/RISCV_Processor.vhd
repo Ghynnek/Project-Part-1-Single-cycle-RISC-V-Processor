@@ -139,6 +139,9 @@ architecture structure of RISCV_Processor is
       imm        : in  std_logic_vector(31 downto 0);
       MemToReg   : in  std_logic;
       LUI        : in  std_logic;
+      pc_plus4   : in  std_logic_vector(31 downto 0);
+      Jump       : in  std_logic;
+      JumpReg    : in  std_logic;
       wb_data    : out std_logic_vector(31 downto 0)
     );
   end component;
@@ -286,6 +289,9 @@ begin
       imm        => s_Imm,
       MemToReg   => s_MemToReg,
       LUI        => s_LUI,
+      pc_plus4   => s_PCPlus4,
+      Jump       => s_Jump,
+      JumpReg    => s_JumpReg,
       wb_data    => s_RegWrData
     );
 
