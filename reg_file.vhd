@@ -53,7 +53,7 @@ architecture structural of reg_file is
 
 begin
 
-  DECODER: decoder_5to32
+  U_DECODER: decoder
     port map(
       i_WE => i_we,
       i_A  => i_rd,
