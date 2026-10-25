@@ -40,6 +40,7 @@ architecture structure of RISCV_Processor is
   signal s_DMemWr       : std_logic; -- TODO: use this signal as the final active high data memory write enable signal
   signal s_DMemAddr     : std_logic_vector(N-1 downto 0); -- TODO: use this signal as the final data memory address input
   signal s_DMemData     : std_logic_vector(N-1 downto 0); -- TODO: use this signal as the final data memory data input
+  signal s_DMemBE       : std_logic_vector(3 downto 0); -- TODO: enable the addressed byte for SB, halfword for SH, or all bytes for SW
   signal s_DMemOut      : std_logic_vector(N-1 downto 0); -- TODO: use this signal as the data memory output
  
   -- Required register file signals 
@@ -65,6 +66,7 @@ architecture structure of RISCV_Processor is
           clk          : in std_logic;
           addr         : in std_logic_vector((ADDR_WIDTH-1) downto 0);
           data         : in std_logic_vector((DATA_WIDTH-1) downto 0);
+          be           : in std_logic_vector(3 downto 0);
           we           : in std_logic := '1';
           q            : out std_logic_vector((DATA_WIDTH -1) downto 0));
     end component;
@@ -86,6 +88,7 @@ begin
     port map(clk  => iCLK,
              addr => s_IMemAddr(11 downto 2),
              data => iInstExt,
+             be   => "1111",
              we   => iInstLd,
              q    => s_Inst);
   
@@ -95,6 +98,7 @@ begin
     port map(clk  => iCLK,
              addr => s_DMemAddr(11 downto 2),
              data => s_DMemData,
+             be   => s_DMemBE,
              we   => s_DMemWr,
              q    => s_DMemOut);
 
