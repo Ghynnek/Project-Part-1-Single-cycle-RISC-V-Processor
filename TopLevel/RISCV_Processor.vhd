@@ -29,6 +29,7 @@ architecture structure of RISCV_Processor is
   signal s_DMemWr       : std_logic;
   signal s_DMemAddr     : std_logic_vector(N-1 downto 0);
   signal s_DMemData     : std_logic_vector(N-1 downto 0);
+  signal s_DMemBE       : std_logic_vector(3 downto 0);
   signal s_DMemOut      : std_logic_vector(N-1 downto 0);
  
   -- Required register file signals 
@@ -54,6 +55,7 @@ architecture structure of RISCV_Processor is
           clk          : in std_logic;
           addr         : in std_logic_vector((ADDR_WIDTH-1) downto 0);
           data         : in std_logic_vector((DATA_WIDTH-1) downto 0);
+          be           : in std_logic_vector(3 downto 0);
           we           : in std_logic := '1';
           q            : out std_logic_vector((DATA_WIDTH -1) downto 0));
   end component;
@@ -161,6 +163,8 @@ architecture structure of RISCV_Processor is
   signal s_Zero       : std_logic;
   signal s_sh_data    : std_logic_vector(31 downto 0);
   signal s_sb_data    : std_logic_vector(31 downto 0);
+  signal s_sh_be      : std_logic_vector(3 downto 0);
+  signal s_sb_be      : std_logic_vector(3 downto 0);
 
   -- Control Unit Signals
   signal s_MemRead    : std_logic;
@@ -188,6 +192,7 @@ begin
     port map(clk  => iCLK,
              addr => s_IMemAddr(11 downto 2),
              data => iInstExt,
+             be   => "1111",
              we   => iInstLd,
              q    => s_Inst);
   
@@ -197,6 +202,7 @@ begin
     port map(clk  => iCLK,
              addr => s_DMemAddr(11 downto 2),
              data => s_DMemData,
+             be   => s_DMemBE,
              we   => s_DMemWr,
              q    => s_DMemOut);
 
@@ -231,6 +237,23 @@ begin
     s_DMemData <= s_sb_data  when "000",
                   s_sh_data  when "001",
                   s_RegRead2 when others;
+
+  -- Byte enables: which bytes of the word a store writes
+  -- sh: lower half (offset 0) or upper half (offset 2)
+  s_sh_be <= "0011" when s_ALUResult(1) = '0' else "1100";
+
+  -- sb: one byte picked by s_ALUResult(1 downto 0)
+  with s_ALUResult(1 downto 0) select
+    s_sb_be <= "0001" when "00",
+               "0010" when "01",
+               "0100" when "10",
+               "1000" when others;
+
+  -- 000 = sb, 001 = sh, 010 = sw (all four bytes)
+  with s_Inst(14 downto 12) select
+    s_DMemBE <= s_sb_be when "000",
+                s_sh_be when "001",
+                "1111"  when others;
 
   -- =========================================================================
   -- Processor Datapath Instantiations
