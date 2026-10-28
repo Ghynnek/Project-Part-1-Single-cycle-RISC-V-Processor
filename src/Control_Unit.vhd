@@ -13,6 +13,7 @@ entity control_unit is
         Jump        : out std_logic;
         JumpReg     : out std_logic;
         LUI         : out std_logic;
+        AUIPC       : out std_logic;
         ImmSrc      : out std_logic_vector(2 downto 0);
         ALUControl  : out std_logic_vector(3 downto 0)
     );
@@ -72,11 +73,13 @@ begin
                 else '0';
     MemToReg <= is_load;
 
--- PC/fetch controls.
+    -- PC/fetch controls.
     Branch  <= is_branch;
     Jump    <= is_jal;
     JumpReg <= is_jalr;
     LUI     <= is_lui;
+    AUIPC   <= is_auipc;
+
     -- 000 = I-type, 001 = S-type, 010 = B-type,
     -- 011 = U-type, 100 = J-type.
     ImmSrc <= "001" when is_store  = '1' else
@@ -84,13 +87,14 @@ begin
               "011" when is_lui    = '1' or is_auipc = '1' else
               "100" when is_jal    = '1' else
               "000";
+
     -- 0000 add, 0001 sub, 0010 and, 0011 or, 0100 xor,
     -- 0101 sll, 0110 srl, 0111 sra, 1000 slt, 1001 sltu.
-    -- Loads/stores intentionally fall through to add for address calculation.
+    -- Loads/stores/auipc intentionally fall through to add.
     ALUControl <= "0001" when is_branch = '1' and (funct3 = "000" or funct3 = "001") else
                   "1000" when is_branch = '1' and (funct3 = "100" or funct3 = "101") else
                   "1001" when is_branch = '1' and (funct3 = "110" or funct3 = "111") else
-                  "0001" when is_rtype = '1' and funct3 = "000" and funct7 = "0100000" else -- For sub funct7 is "0100000" ALUControl = "0001" (subtract). For add, funct7 is "0000000", falls through "0000" (add)
+                  "0001" when is_rtype = '1' and funct3 = "000" and funct7 = "0100000" else
                   "0101" when (is_rtype = '1' or is_itype = '1') and funct3 = "001" else
                   "0111" when (is_rtype = '1' or is_itype = '1') and funct3 = "101" and funct7 = "0100000" else
                   "0110" when (is_rtype = '1' or is_itype = '1') and funct3 = "101" else
@@ -102,4 +106,3 @@ begin
                   "0000";
 
 end architecture;
-
