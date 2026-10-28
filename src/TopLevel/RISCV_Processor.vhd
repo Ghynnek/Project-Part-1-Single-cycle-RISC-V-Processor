@@ -29,6 +29,7 @@ architecture structure of RISCV_Processor is
   signal s_DMemWr       : std_logic;
   signal s_DMemAddr     : std_logic_vector(N-1 downto 0);
   signal s_DMemData     : std_logic_vector(N-1 downto 0);
+  signal s_DMemBE       : std_logic_vector(3 downto 0);
   signal s_DMemOut      : std_logic_vector(N-1 downto 0);
  
   -- Required register file signals 
@@ -54,6 +55,7 @@ architecture structure of RISCV_Processor is
           clk          : in std_logic;
           addr         : in std_logic_vector((ADDR_WIDTH-1) downto 0);
           data         : in std_logic_vector((DATA_WIDTH-1) downto 0);
+          be           : in std_logic_vector(3 downto 0);
           we           : in std_logic := '1';
           q            : out std_logic_vector((DATA_WIDTH -1) downto 0));
   end component;
@@ -86,6 +88,7 @@ architecture structure of RISCV_Processor is
       Jump        : out std_logic;
       JumpReg     : out std_logic;
       LUI         : out std_logic;
+      AUIPC       : out std_logic;
       ImmSrc      : out std_logic_vector(2 downto 0);
       ALUControl  : out std_logic_vector(3 downto 0)
     );
@@ -137,6 +140,7 @@ architecture structure of RISCV_Processor is
       alu_result : in  std_logic_vector(31 downto 0);
       mem_data   : in  std_logic_vector(31 downto 0);
       imm        : in  std_logic_vector(31 downto 0);
+      funct3     : in  std_logic_vector(2 downto 0);
       MemToReg   : in  std_logic;
       LUI        : in  std_logic;
       pc_plus4   : in  std_logic_vector(31 downto 0);
@@ -153,9 +157,14 @@ architecture structure of RISCV_Processor is
   signal s_Imm        : std_logic_vector(31 downto 0);
   signal s_RegRead1   : std_logic_vector(31 downto 0);
   signal s_RegRead2   : std_logic_vector(31 downto 0);
+  signal s_ALUA       : std_logic_vector(31 downto 0);
   signal s_ALUB       : std_logic_vector(31 downto 0);
   signal s_ALUResult  : std_logic_vector(31 downto 0);
   signal s_Zero       : std_logic;
+  signal s_sh_data    : std_logic_vector(31 downto 0);
+  signal s_sb_data    : std_logic_vector(31 downto 0);
+  signal s_sh_be      : std_logic_vector(3 downto 0);
+  signal s_sb_be      : std_logic_vector(3 downto 0);
 
   -- Control Unit Signals
   signal s_MemRead    : std_logic;
@@ -165,6 +174,7 @@ architecture structure of RISCV_Processor is
   signal s_Jump       : std_logic;
   signal s_JumpReg    : std_logic;
   signal s_LUI        : std_logic;
+  signal s_AUIPC      : std_logic;
   signal s_ImmSrc     : std_logic_vector(2 downto 0);
   signal s_ALUControl : std_logic_vector(3 downto 0);
 
@@ -182,6 +192,7 @@ begin
     port map(clk  => iCLK,
              addr => s_IMemAddr(11 downto 2),
              data => iInstExt,
+             be   => "1111",
              we   => iInstLd,
              q    => s_Inst);
   
@@ -191,6 +202,7 @@ begin
     port map(clk  => iCLK,
              addr => s_DMemAddr(11 downto 2),
              data => s_DMemData,
+             be   => s_DMemBE,
              we   => s_DMemWr,
              q    => s_DMemOut);
 
@@ -207,8 +219,41 @@ begin
   -- =========================================================================
   s_RegWrAddr <= s_Inst(11 downto 7);
   s_DMemAddr  <= s_ALUResult;
-  s_DMemData  <= s_RegRead2;
   oALUOut     <= s_ALUResult;
+
+  -- Halfword store merge (sh): replace lower 16 bits (offset 0) or upper 16 bits (offset 2)
+  s_sh_data <= (s_DMemOut(31 downto 16) & s_RegRead2(15 downto 0)) when s_ALUResult(1) = '0' else
+               (s_RegRead2(15 downto 0) & s_DMemOut(15 downto 0));
+
+  -- Byte store merge (sb): replace byte 0, 1, 2, or 3 based on s_ALUResult(1 downto 0)
+  with s_ALUResult(1 downto 0) select
+    s_sb_data <= s_DMemOut(31 downto 8)  & s_RegRead2(7 downto 0)                          when "00",
+                 s_DMemOut(31 downto 16) & s_RegRead2(7 downto 0) & s_DMemOut(7 downto 0)  when "01",
+                 s_DMemOut(31 downto 24) & s_RegRead2(7 downto 0) & s_DMemOut(15 downto 0) when "10",
+                 s_RegRead2(7 downto 0)  & s_DMemOut(23 downto 0)                         when others;
+
+  -- Select store data based on funct3: 000 = sb, 001 = sh, 010 = sw
+  with s_Inst(14 downto 12) select
+    s_DMemData <= s_sb_data  when "000",
+                  s_sh_data  when "001",
+                  s_RegRead2 when others;
+
+  -- Byte enables: which bytes of the word a store writes
+  -- sh: lower half (offset 0) or upper half (offset 2)
+  s_sh_be <= "0011" when s_ALUResult(1) = '0' else "1100";
+
+  -- sb: one byte picked by s_ALUResult(1 downto 0)
+  with s_ALUResult(1 downto 0) select
+    s_sb_be <= "0001" when "00",
+               "0010" when "01",
+               "0100" when "10",
+               "1000" when others;
+
+  -- 000 = sb, 001 = sh, 010 = sw (all four bytes)
+  with s_Inst(14 downto 12) select
+    s_DMemBE <= s_sb_be when "000",
+                s_sh_be when "001",
+                "1111"  when others;
 
   -- =========================================================================
   -- Processor Datapath Instantiations
@@ -241,6 +286,7 @@ begin
       Jump        => s_Jump,
       JumpReg     => s_JumpReg,
       LUI         => s_LUI,
+      AUIPC       => s_AUIPC,
       ImmSrc      => s_ImmSrc,
       ALUControl  => s_ALUControl
     );
@@ -265,6 +311,14 @@ begin
       imm         => s_Imm
     );
 
+  U_ALUSRCA_MUX: mux2_32
+    port map (
+      d0 => s_RegRead1,
+      d1 => s_PC,
+      s  => s_AUIPC,
+      y  => s_ALUA
+    );
+
   U_ALUSRC_MUX: mux2_32
     port map (
       d0 => s_RegRead2,
@@ -275,7 +329,7 @@ begin
 
   U_ALU: alu
     port map (
-      a          => s_RegRead1,
+      a          => s_ALUA,
       b          => s_ALUB,
       ALUControl => s_ALUControl,
       result     => s_ALUResult,
@@ -287,6 +341,7 @@ begin
       alu_result => s_ALUResult,
       mem_data   => s_DMemOut,
       imm        => s_Imm,
+      funct3     => s_Inst(14 downto 12),
       MemToReg   => s_MemToReg,
       LUI        => s_LUI,
       pc_plus4   => s_PCPlus4,

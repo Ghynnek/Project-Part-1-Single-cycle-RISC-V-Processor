@@ -1,0 +1,59 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+-- 32-bit barrel shifter built from muxes.
+-- No shift_left/shift_right functions are used.
+-- shift_right = 0 gives SLL.
+-- shift_right = 1 and arithmetic = 0 gives SRL.
+-- shift_right = 1 and arithmetic = 1 gives SRA.
+entity barrel_shifter is
+  port (
+    data_in     : in  std_logic_vector(31 downto 0);
+    shamt       : in  std_logic_vector(4 downto 0);
+    shift_right : in  std_logic;
+    arithmetic  : in  std_logic;
+    data_out    : out std_logic_vector(31 downto 0)
+  );
+end entity;
+
+architecture dataflow of barrel_shifter is
+  -- Fill bit for right shifts. Arithmetic right shift repeats the sign bit;
+  -- logical right shift fills with zero.
+  signal sign_fill : std_logic;
+
+  -- Left and right staged shift paths.
+  -- Each stage optionally shifts by 1, 2, 4, 8, or 16.
+  signal l1, l2, l4, l8, l16 : std_logic_vector(31 downto 0);
+  signal r1, r2, r4, r8, r16 : std_logic_vector(31 downto 0);
+  signal left_result, right_result : std_logic_vector(31 downto 0);
+begin
+
+  sign_fill <= data_in(31) when arithmetic = '1' else '0';
+
+  -- Left shift path.
+  l1  <= data_in(30 downto 0) & '0' when shamt(0) = '1' else data_in;
+  l2  <= l1(29 downto 0) & "00" when shamt(1) = '1' else l1;
+  l4  <= l2(27 downto 0) & x"0" when shamt(2) = '1' else l2;
+  l8  <= l4(23 downto 0) & x"00" when shamt(3) = '1' else l4;
+  l16 <= l8(15 downto 0) & x"0000" when shamt(4) = '1' else l8;
+
+  -- Right shift path.
+  r1  <= sign_fill & data_in(31 downto 1) when shamt(0) = '1' else data_in;
+  r2  <= sign_fill & sign_fill & r1(31 downto 2) when shamt(1) = '1' else r1;
+  r4  <= sign_fill & sign_fill & sign_fill & sign_fill & r2(31 downto 4) when shamt(2) = '1' else r2;
+  r8  <= sign_fill & sign_fill & sign_fill & sign_fill &
+         sign_fill & sign_fill & sign_fill & sign_fill &
+         r4(31 downto 8) when shamt(3) = '1' else r4;
+  r16 <= sign_fill & sign_fill & sign_fill & sign_fill &
+         sign_fill & sign_fill & sign_fill & sign_fill &
+         sign_fill & sign_fill & sign_fill & sign_fill &
+         sign_fill & sign_fill & sign_fill & sign_fill &
+         r8(31 downto 16) when shamt(4) = '1' else r8;
+
+  left_result  <= l16;
+  right_result <= r16;
+
+  -- Final direction select.
+  data_out <= right_result when shift_right = '1' else left_result;
+
+end architecture;

@@ -54,6 +54,7 @@ begin
              i_Cin  => '0',
              o_S    => pc4,
              o_Cout => s_Cout4);
+	
 	PCADDIMM: Adder_N
 	Generic map(N => 32)
 	port map(i_A  => pc_reg,
@@ -65,6 +66,7 @@ begin
   jalr_t <= alu_result(31 downto 1) & '0';
 
   cond  <= alu_result(0) when funct3(2) = '1' else zero;
+  
   taken <= Branch and (funct3(0) xor cond);
 
   pcsrc <= "10" when JumpReg = '1' else

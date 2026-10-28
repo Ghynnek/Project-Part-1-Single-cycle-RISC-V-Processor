@@ -1,0 +1,94 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
+
+entity alu is
+  port (
+    a          : in  std_logic_vector(31 downto 0);
+    b          : in  std_logic_vector(31 downto 0);
+    ALUControl : in  std_logic_vector(3 downto 0);
+    result     : out std_logic_vector(31 downto 0);
+    zero       : out std_logic
+  );
+end entity;
+
+architecture dataflow of alu is
+  component barrel_shifter is
+    port (
+      data_in     : in  std_logic_vector(31 downto 0);
+      shamt       : in  std_logic_vector(4 downto 0); -- shift amount
+      shift_right : in  std_logic;
+      arithmetic  : in  std_logic;
+      data_out    : out std_logic_vector(31 downto 0)
+    );
+  end component;
+  
+  -- signals for operations
+  signal add_result  : std_logic_vector(31 downto 0);
+  signal sub_result  : std_logic_vector(31 downto 0);
+  signal and_result  : std_logic_vector(31 downto 0);
+  signal or_result   : std_logic_vector(31 downto 0);
+  signal xor_result  : std_logic_vector(31 downto 0);
+  signal sll_result  : std_logic_vector(31 downto 0);
+  signal srl_result  : std_logic_vector(31 downto 0);
+  signal sra_result  : std_logic_vector(31 downto 0);
+  signal slt_result  : std_logic_vector(31 downto 0);
+  signal sltu_result : std_logic_vector(31 downto 0);
+  signal result_i    : std_logic_vector(31 downto 0);
+begin
+
+  -- Arithmetic and logic operations.
+  add_result  <= std_logic_vector(unsigned(a) + unsigned(b));
+  sub_result  <= std_logic_vector(unsigned(a) - unsigned(b));
+  and_result  <= a and b;
+  or_result   <= a or b;
+  xor_result  <= a xor b;
+  slt_result  <= x"00000001" when signed(a) < signed(b) else x"00000000";
+  sltu_result <= x"00000001" when unsigned(a) < unsigned(b) else x"00000000";
+
+  -- Shift operations 
+  sll_unit: barrel_shifter
+    port map (
+      data_in     => a,
+      shamt       => b(4 downto 0),
+      shift_right => '0',
+      arithmetic  => '0',
+      data_out    => sll_result
+    );
+
+  srl_unit: barrel_shifter
+    port map (
+      data_in     => a,
+      shamt       => b(4 downto 0),
+      shift_right => '1',
+      arithmetic  => '0',
+      data_out    => srl_result
+    );
+
+  sra_unit: barrel_shifter
+    port map (
+      data_in     => a,
+      shamt       => b(4 downto 0),
+      shift_right => '1',
+      arithmetic  => '1',
+      data_out    => sra_result
+    );
+
+  -- Final ALU result mux.
+  with ALUControl select
+    result_i <= sub_result  when "0001",
+       and_result  when "0010",
+       or_result   when "0011",
+       xor_result  when "0100",
+       sll_result  when "0101",
+       srl_result  when "0110",
+       sra_result  when "0111",
+       slt_result  when "1000",
+       sltu_result when "1001",
+       add_result  when others;
+
+  -- Zero flag is used by some branches
+  result <= result_i;
+  zero <= '1' when result_i = x"00000000" else '0';
+
+end architecture;
