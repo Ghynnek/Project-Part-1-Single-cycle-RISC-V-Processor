@@ -16,7 +16,7 @@ entity barrel_shifter is
   );
 end entity;
 
-architecture dataflow of barrel_shifter is
+architecture dataflow of barrel_shifter is ---UPDATING TO STRUCTURAL
   -- Fill bit for right shifts. Arithmetic right shift repeats the sign bit;
   -- logical right shift fills with zero.
   signal sign_fill : std_logic;

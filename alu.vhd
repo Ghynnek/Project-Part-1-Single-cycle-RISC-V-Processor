@@ -37,7 +37,7 @@ architecture dataflow of alu is
   signal result_i    : std_logic_vector(31 downto 0);
 begin
 
-  -- Arithmetic and logic operations.
+  -- Arithmetic and logic operations. --UPDATING TO 
   add_result  <= std_logic_vector(unsigned(a) + unsigned(b));
   sub_result  <= std_logic_vector(unsigned(a) - unsigned(b));
   and_result  <= a and b;
